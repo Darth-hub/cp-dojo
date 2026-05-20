@@ -25,7 +25,7 @@ utils -> pure functions that take in data that is fetched by a service and give 
 5. what does lib/supabase.ts do
 initiate my client in server side and when function is called it makes a fresh browser client 
 
-6. what are the 4 localStorage keys in the old project
+6. what are the 6 localStorage keys in the old project
 HISTORY_STORAGE_KEY = "training-tracker-history"
 PROBLEMS_CACHE_KEY = "codeforces-all-problems"
 TRAINING_STORAGE_KEY = "training-tracker-training"
