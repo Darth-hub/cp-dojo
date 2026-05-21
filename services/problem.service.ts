@@ -37,4 +37,30 @@ const getSubmissions = async (
   }
 };
 
-export { getAllProblems, getSubmissions };
+const getSolvedProblems = async (
+  handle: string
+): Promise<Response<CodeforcesProblem[]>> => {
+  try {
+    const result = await cfFetch(
+      `user.status?handle=${handle}&from=1&count=500`
+    )
+    // filter only accepted submissions and extract unique problems
+    const solved = result
+      .filter((s: CodeforcesSubmission) => s.verdict === "OK")
+      .map((s: CodeforcesSubmission) => s.problem)
+
+    // deduplicate by contestId + index
+    const seen = new Set<string>()
+    const unique = solved.filter((p: CodeforcesProblem) => {
+      const key = `${p.contestId}_${p.index}`
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+
+    return SuccessResponse(unique)
+  } catch (error) {
+    return ErrorResponse((error as Error).message)
+  }
+}
+export { getAllProblems, getSubmissions, getSolvedProblems }
