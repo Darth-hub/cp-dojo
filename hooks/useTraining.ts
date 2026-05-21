@@ -12,6 +12,8 @@ import {
   getActiveSession,
 } from "@/services/session.service"
 import getRandomProblems from "@/utils/getRandomProblems"
+import { getSubmissions } from "@/services/problem.service"
+import checkSolvedStatus from "@/utils/checkSolvedStatus"
 
 const ALL_PROBLEMS_KEY = "cpdojo-all-problems"
 const SOLVED_PROBLEMS_KEY = (handle: string) => `cpdojo-solved-${handle}`
@@ -26,6 +28,7 @@ const useTraining = () => {
   const [ratingMin, setRatingMin] = useState(800)
   const [ratingMax, setRatingMax] = useState(1600)
   const [selectedTags, setSelectedTags] = useState<ProblemTag[]>([])
+  const [problemCount, setProblemCount] = useState(4)
 
   // fetch all CF problems, cached for 1 hour
   const { data: allProblems } = useSWR<CodeforcesProblem[]>(
@@ -80,7 +83,7 @@ const useTraining = () => {
         ratingMin,
         ratingMax,
         selectedTags,
-        4 // default 4 problems for training
+        problemCount // default 4 problems for training
       )
 
       // create session in Supabase
@@ -133,6 +136,24 @@ const useTraining = () => {
         : [...prev, tag]
     )
   }
+  const checkDone = async () => {
+  if (!user || problems.length === 0) return
+  const submissionsRes = await getSubmissions(user.cf_handle, 10)
+  if (!submissionsRes.success) return
+  const updated = checkSolvedStatus(problems, submissionsRes.data)
+  // update Supabase for newly solved
+  const supabase = (await import("@/lib/supabase")).createClient()
+  for (const p of updated) {
+    if (p.solved_time !== null) {
+      await supabase
+        .from("session_problems")
+        .update({ solved_time: p.solved_time })
+        .eq("id", p.id)
+        .is("solved_time", null)
+    }
+  }
+  setProblems(updated)
+}
 
   const onClearTags = () => setSelectedTags([])
 
@@ -149,6 +170,9 @@ const useTraining = () => {
     onClearTags,
     generate,
     toggleBookmark,
+    problemCount,
+    setProblemCount,
+    checkDone,
   }
 }
 
