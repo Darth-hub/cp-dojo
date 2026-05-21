@@ -55,7 +55,7 @@ const saveSessionProblems = async (
 // and restore contest if user closed tab mid-contest
 const getActiveSession = async (
   userId: string
-): Promise<Response<(Session & { problems: SessionProblem[] }) | null>> => {
+): Promise<Response<(Session & { session_problems: SessionProblem[] }) | null>> => {
   try {
     const supabase = createClient()
     const { data, error } = await supabase
@@ -67,7 +67,7 @@ const getActiveSession = async (
       .limit(1)
       .single()
     if (error) return SuccessResponse(null)
-    return SuccessResponse(data as Session & { problems: SessionProblem[] })
+    return SuccessResponse(data as Session & { session_problems: SessionProblem[] })
   } catch (error) {
     return ErrorResponse((error as Error).message)
   }
