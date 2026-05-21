@@ -1,3 +1,4 @@
+// get problems and all submissions of a user 
 import cfFetch from "@/lib/codeforces";
 import { CodeforcesProblem, CodeforcesSubmission } from "@/types/Codeforces";
 import { SuccessResponse, ErrorResponse, Response } from "@/types/Response";

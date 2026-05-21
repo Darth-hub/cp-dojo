@@ -1,3 +1,4 @@
+// get user handle, save and do db updations here 
 import { createClient } from "@/lib/supabase"
 import { User } from "@/types/User"
 import { SuccessResponse, ErrorResponse, Response } from "@/types/Response"

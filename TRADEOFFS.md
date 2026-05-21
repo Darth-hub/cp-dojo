@@ -35,3 +35,13 @@
 **Why acceptable now:** handle changes are extremely rare on Codeforces, require CF support.
 **Fix when:** if users complain.
 **Solution:** build a handle claim flow that lets user prove ownership of old handle and merge history.
+
+## 7. Upsolve derived from session_problems
+**Current:** upsolve page queries session_problems with a join on sessions.
+**Why acceptable:** single source of truth, no sync bugs, indexes keep it fast.
+**Fix when:** query becomes slow at very large scale (1M+ rows).
+**Solution:** add a materialized view or separate upsolve table only then.
+
+## 8. Timer calculated from started_at
+**Current:** timer is never stored. Always calculated as duration - (now - started_at).
+**Why good:** accurate even if user closes tab mid-contest. No sync needed.
