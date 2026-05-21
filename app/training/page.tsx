@@ -1,11 +1,10 @@
 "use client";
-import { useRouter } from "next/navigation";
 import useTraining from "@/hooks/useTraining";
 import tagData from "@/public/data/tag.json";
 import { ProblemTag } from "@/types/Codeforces";
+import NavBar from "@/components/shared/NavBar";
 
 export default function TrainingPage() {
-  const router = useRouter();
   const {
     problems,
     isGenerating,
@@ -33,59 +32,7 @@ export default function TrainingPage() {
         fontFamily: "Georgia, serif",
       }}
     >
-      {/* top red line */}
-      <div style={{ height: "3px", background: "#c0392b" }} />
-
-      {/* header */}
-      <div
-        style={{
-          padding: "1.25rem 2.5rem",
-          borderBottom: "1px solid #e8ddd0",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-          <span
-            onClick={() => router.push("/")}
-            style={{ color: "#c0392b", fontSize: "20px", cursor: "pointer" }}
-          >
-            ⛩
-          </span>
-          <span
-            style={{
-              color: "#2c2420",
-              fontSize: "13px",
-              letterSpacing: "0.15em",
-            }}
-          >
-            CP - 道場 · Dojo
-          </span>
-        </div>
-        <nav style={{ display: "flex", gap: "2rem" }}>
-          {[
-            ["修行", "/training"],
-            ["競争", "/contest"],
-            ["復習", "/upsolve"],
-            ["統計", "/statistics"],
-          ].map(([label, path]) => (
-            <span
-              key={path}
-              onClick={() => router.push(path)}
-              style={{
-                color: path === "/training" ? "#c0392b" : "#8c7b6b",
-                fontSize: "12px",
-                letterSpacing: "0.1em",
-                cursor: "pointer",
-              }}
-            >
-              {label}
-            </span>
-          ))}
-        </nav>
-      </div>
-
+      <NavBar />
       <div
         style={{ maxWidth: "900px", margin: "0 auto", padding: "3rem 2rem" }}
       >
@@ -194,7 +141,9 @@ export default function TrainingPage() {
               type="number"
               value={problemCount}
               onChange={(e) =>
-                setProblemCount(Math.min(30, Math.max(1, Number(e.target.value))))
+                setProblemCount(
+                  Math.min(26, Math.max(1, Number(e.target.value))),
+                )
               }
               min={1}
               max={30}
@@ -321,7 +270,9 @@ export default function TrainingPage() {
               >
                 問題 · PROBLEMS
               </p>
-              <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "1rem" }}
+              >
                 <p style={{ color: "#8c7b6b", fontSize: "11px", margin: 0 }}>
                   {problems.length} problems
                 </p>
@@ -353,7 +304,7 @@ export default function TrainingPage() {
                   justifyContent: "space-between",
                   gap: "1rem",
                   background: problem.solved_time
-                    ? "rgba(192, 57, 43, 0.08)"
+                    ? "rgba(45, 173, 84, 0.18)"
                     : "transparent",
                 }}
               >

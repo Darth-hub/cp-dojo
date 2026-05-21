@@ -39,6 +39,7 @@ const useUser = () => {
   const { data: user, isLoading, mutate } = useSWR<User | null>(
     USER_CACHE_KEY,
     async () => {
+      if (typeof window === "undefined") return null 
       const handle = getCookie(HANDLE_COOKIE_KEY)
       if (!handle) return null
       const supabase = createClient()
