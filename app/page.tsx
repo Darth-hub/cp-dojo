@@ -182,7 +182,7 @@ export default function HomePage() {
               letterSpacing: "0.15em",
             }}
           >
-            CP — 道場
+            CP — 道場 · Dojo
           </span>
         </div>
         <span

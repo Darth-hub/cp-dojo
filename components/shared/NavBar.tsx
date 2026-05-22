@@ -40,7 +40,7 @@ export default function NavBar() {
               letterSpacing: "0.15em",
             }}
           >
-            CP — 道場
+            CP · 道場 · Dojo
           </span>
         </div>
         <nav style={{ display: "flex", gap: "2rem" }}>
