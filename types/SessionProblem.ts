@@ -8,6 +8,7 @@ type SessionProblem = {
   tags: string[]
   url: string
   solved_time: number | null
+  status: "none" | "solved" | "wrong" | "testing"
   bookmarked: boolean
   upsolved: boolean
 }

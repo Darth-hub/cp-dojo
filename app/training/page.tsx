@@ -303,9 +303,11 @@ export default function TrainingPage() {
                   alignItems: "center",
                   justifyContent: "space-between",
                   gap: "1rem",
-                  background: problem.solved_time
-                    ? "rgba(45, 173, 84, 0.18)"
-                    : "transparent",
+                  background:
+                    problem.status === "solved"  ? "rgba(45, 173, 84, 0.18)"  :
+                    problem.status === "wrong"   ? "rgba(192, 57, 43, 0.18)"  :
+                    problem.status === "testing" ? "rgba(212, 160, 23, 0.20)" :
+                    "transparent",
                 }}
               >
                 <div
