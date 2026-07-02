@@ -66,6 +66,26 @@ const useContest = () => {
     restore()
   }, [user])
 
+  // finish the contest — declared before the timer effect that calls it
+  const finish = useCallback(async () => {
+    if (!sessionId) return
+    clearInterval(timerRef.current)
+    let finalProblems = problems
+    if (user) {
+      const subRes = await getSubmissions(user.cf_handle, 20)
+      if (subRes.success) finalProblems = checkSolvedStatus(problems, subRes.data)
+    }
+    const solved = finalProblems
+      .filter((p) => p.solved_time !== null)
+      .map((p) => ({ contestId: p.contest_id, index: p.index }))
+    const performance = solved.length * 100
+    await finishSession(sessionId, performance, solved)
+    setStartedAt(null)
+    setSessionId(null)
+    setProblems([])
+    router.push("/statistics")
+  }, [sessionId, user, problems, router])
+
   // timer loop
   useEffect(() => {
     if (startedAt === null) return
@@ -123,36 +143,12 @@ const useContest = () => {
     const updated = checkSolvedStatus(problems, subRes.data)
     const supabase = (await import("@/lib/supabase")).createClient()
     for (const p of updated) {
-      if (p.solved_time !== null) {
-        await supabase.from("session_problems")
-          .update({ solved_time: p.solved_time })
-          .eq("id", p.id).is("solved_time", null)
-      }
+      await supabase.from("session_problems")
+        .update({ status: p.status, solved_time: p.solved_time })
+        .eq("id", p.id)
     }
     setProblems(updated)
   }, [user, problems])
-
-  // finish the contest
-  const finish = async () => {
-    if (!sessionId) return
-    clearInterval(timerRef.current)
-    // refresh one last time
-    let finalProblems = problems
-    if (user) {
-      const subRes = await getSubmissions(user.cf_handle, 20)
-      if (subRes.success) finalProblems = checkSolvedStatus(problems, subRes.data)
-    }
-    const solved = finalProblems
-      .filter((p) => p.solved_time !== null)
-      .map((p) => ({ contestId: p.contest_id, index: p.index }))
-    // performance: simple for now — count solved (rewrite later)
-    const performance = solved.length * 100
-    await finishSession(sessionId, performance, solved)
-    setStartedAt(null)
-    setSessionId(null)
-    setProblems([])
-    router.push("/statistics")
-  }
 
   return {
     problems, duration, problemCount, ratingMin, ratingMax,

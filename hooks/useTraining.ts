@@ -136,21 +136,19 @@ const useTraining = () => {
         : [...prev, tag]
     )
   }
+
+
   const checkDone = async () => {
   if (!user || problems.length === 0) return
   const submissionsRes = await getSubmissions(user.cf_handle, 10)
   if (!submissionsRes.success) return
   const updated = checkSolvedStatus(problems, submissionsRes.data)
-  // update Supabase for newly solved
   const supabase = (await import("@/lib/supabase")).createClient()
   for (const p of updated) {
-    if (p.solved_time !== null) {
-      await supabase
-        .from("session_problems")
-        .update({ solved_time: p.solved_time })
-        .eq("id", p.id)
-        .is("solved_time", null)
-    }
+    await supabase
+      .from("session_problems")
+      .update({ status: p.status, solved_time: p.solved_time })
+      .eq("id", p.id)
   }
   setProblems(updated)
 }
