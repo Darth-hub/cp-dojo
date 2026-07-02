@@ -13,9 +13,10 @@ const formatTime = (ms: number) => {
 export default function ContestPage() {
   const {
     problems, duration, problemCount, ratingMin, ratingMax,
-    startedAt, timeLeft, isGenerating,
+    startedAt, timeLeft, isGenerating, isRefreshing, lastRefreshed,
+    analysis, isAnalyzing,
     setDuration, setProblemCount, setRatingMin, setRatingMax,
-    generate, start, refresh, finish,
+    generate, start, refresh, finish, dismissAnalysis,
   } = useContest()
 
   const isRunning = startedAt !== null
@@ -59,42 +60,94 @@ export default function ContestPage() {
                 {formatTime(timeLeft)}
               </p>
             </div>
-            <div style={{ display: "flex", gap: "0.75rem" }}>
-              <button
-                onClick={refresh}
-                style={{
-                  padding: "0.6rem 1.4rem",
-                  background: "transparent",
-                  border: "1px solid #c8b8a2",
-                  borderRadius: "4px",
-                  color: "#2c2420",
-                  fontSize: "13px",
-                  cursor: "pointer",
-                  fontFamily: "Georgia, serif",
-                }}
-              >
-                確認 · refresh
-              </button>
-              <button
-                onClick={finish}
-                style={{
-                  padding: "0.6rem 1.4rem",
-                  background: "#c0392b",
-                  border: "none",
-                  borderRadius: "4px",
-                  color: "#fff",
-                  fontSize: "13px",
-                  cursor: "pointer",
-                  fontFamily: "Georgia, serif",
-                }}
-              >
-                終了 · finish
-              </button>
+            <div style={{ textAlign: "right" }}>
+              {lastRefreshed && (
+                <p style={{ color: "#8c7b6b", fontSize: "11px", margin: "0 0 0.5rem" }}>
+                  更新済み · updated {new Date(lastRefreshed).toLocaleTimeString()}
+                </p>
+              )}
+              <div style={{ display: "flex", gap: "0.75rem" }}>
+                <button
+                  onClick={refresh}
+                  disabled={isRefreshing}
+                  style={{
+                    padding: "0.6rem 1.4rem",
+                    background: "transparent",
+                    border: "1px solid #c8b8a2",
+                    borderRadius: "4px",
+                    color: "#2c2420",
+                    fontSize: "13px",
+                    cursor: isRefreshing ? "not-allowed" : "pointer",
+                    opacity: isRefreshing ? 0.6 : 1,
+                    fontFamily: "Georgia, serif",
+                  }}
+                >
+                  {isRefreshing ? "確認中…" : "確認 · refresh"}
+                </button>
+                <button
+                  onClick={finish}
+                  style={{
+                    padding: "0.6rem 1.4rem",
+                    background: "#c0392b",
+                    border: "none",
+                    borderRadius: "4px",
+                    color: "#fff",
+                    fontSize: "13px",
+                    cursor: "pointer",
+                    fontFamily: "Georgia, serif",
+                  }}
+                >
+                  終了 · finish
+                </button>
+              </div>
             </div>
           </div>
         )}
+        {(isAnalyzing || analysis) && (
+          <div style={{
+            background: "#faf7f4",
+            border: "1px solid #e8ddd0",
+            borderRadius: "8px",
+            padding: "1.5rem 2rem",
+            marginBottom: "2rem",
+          }}>
+            <p style={{ color: "#c0392b", fontSize: "11px", letterSpacing: "0.15em", margin: "0 0 1rem" }}>
+              分析 · ANALYSIS
+            </p>
+            {isAnalyzing ? (
+              <p style={{ color: "#8c7b6b", fontSize: "13px" }}>考え中… analyzing your performance…</p>
+            ) : (
+              <>
+                <p style={{
+                  color: "#2c2420",
+                  fontSize: "14px",
+                  lineHeight: "1.7",
+                  whiteSpace: "pre-wrap",
+                  margin: "0 0 1.5rem",
+                }}>
+                  {analysis}
+                </p>
+                <button
+                  onClick={dismissAnalysis}
+                  style={{
+                    padding: "0.6rem 1.6rem",
+                    background: "#2c2420",
+                    border: "none",
+                    borderRadius: "4px",
+                    color: "#f5f0eb",
+                    fontSize: "13px",
+                    cursor: "pointer",
+                    fontFamily: "Georgia, serif",
+                  }}
+                >
+                  続ける · continue
+                </button>
+              </>
+            )}
+          </div>
+        )}
 
-        {!isRunning && (
+        {!isRunning && !isAnalyzing && !analysis && (
           <div style={{
             background: "#faf7f4",
             border: "1px solid #e8ddd0",
@@ -217,7 +270,7 @@ export default function ContestPage() {
           </div>
         )}
 
-        {hasProblems && (
+        {hasProblems && !isAnalyzing && !analysis && (
           <div style={{
             background: "#faf7f4",
             border: "1px solid #e8ddd0",
@@ -275,7 +328,7 @@ export default function ContestPage() {
           </div>
         )}
 
-        {hasProblems && !isRunning && (
+        {hasProblems && !isRunning && !isAnalyzing && !analysis && (
           <button
             onClick={start}
             style={{

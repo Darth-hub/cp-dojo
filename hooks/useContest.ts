@@ -12,6 +12,12 @@ import {
 import getRandomProblems from "@/utils/getRandomProblems"
 import checkSolvedStatus from "@/utils/checkSolvedStatus"
 import useSWR from "swr"
+import getPerformance from "@/utils/getPerformance"
+import { updatePlatformRating } from "@/services/rating.service"
+import { getWeakTags } from "@/services/statistics.service"
+
+
+
 
 const useContest = () => {
   const router = useRouter()
@@ -26,6 +32,14 @@ const useContest = () => {
   const [startedAt, setStartedAt] = useState<number | null>(null)
   const [timeLeft, setTimeLeft] = useState<number>(0)
   const [isGenerating, setIsGenerating] = useState(false)
+  
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [lastRefreshed, setLastRefreshed] = useState<number | null>(null)
+
+  const [analysis, setAnalysis] = useState<string | null>(null)
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+
+
   const timerRef = useRef<NodeJS.Timeout | undefined>(undefined)
 
   const { data: allProblems } = useSWR<CodeforcesProblem[]>(
@@ -67,24 +81,67 @@ const useContest = () => {
   }, [user])
 
   // finish the contest — declared before the timer effect that calls it
+
+
   const finish = useCallback(async () => {
-    if (!sessionId) return
-    clearInterval(timerRef.current)
-    let finalProblems = problems
-    if (user) {
-      const subRes = await getSubmissions(user.cf_handle, 20)
-      if (subRes.success) finalProblems = checkSolvedStatus(problems, subRes.data)
-    }
-    const solved = finalProblems
-      .filter((p) => p.solved_time !== null)
-      .map((p) => ({ contestId: p.contest_id, index: p.index }))
-    const performance = solved.length * 100
-    await finishSession(sessionId, performance, solved)
-    setStartedAt(null)
-    setSessionId(null)
-    setProblems([])
-    router.push("/statistics")
-  }, [sessionId, user, problems, router])
+  if (!sessionId) return
+  clearInterval(timerRef.current)
+  let finalProblems = problems
+  if (user) {
+    const subRes = await getSubmissions(user.cf_handle, 20)
+    if (subRes.success) finalProblems = checkSolvedStatus(problems, subRes.data)
+  }
+
+  const solved = finalProblems
+    .filter((p) => p.status === "solved")
+    .map((p) => ({ contestId: p.contest_id, index: p.index }))
+
+  const performance = getPerformance(
+    finalProblems.map((p) => ({ rating: p.rating, solved: p.status === "solved" }))
+  )
+
+  await finishSession(sessionId, performance, solved)
+
+  if (user) {
+    await updatePlatformRating(user.id, user.platform_rating, performance)
+  }
+
+  // fetch AI analysis before allowing navigation onward
+  setIsAnalyzing(true)
+  try {
+    const weakTagsRes = await getWeakTags(user!.id)
+    const res = await fetch("/api/analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        problems: finalProblems.map((p) => ({ name: p.name, rating: p.rating, status: p.status })),
+        solvedCount: solved.length,
+        totalCount: finalProblems.length,
+        weakTags: weakTagsRes.success ? weakTagsRes.data.map((t) => t.tag) : [],
+      }),
+    })
+    const data = await res.json()
+    setAnalysis(data.analysis ?? "Analysis unavailable this time.")
+  } catch {
+    setAnalysis("Analysis unavailable this time.")
+  } finally {
+    setIsAnalyzing(false)
+  }
+
+  setStartedAt(null)
+  setSessionId(null)
+  setProblems(finalProblems)
+}, [sessionId, user, problems, router])
+
+const dismissAnalysis = useCallback(() => {
+  setAnalysis(null)
+  setProblems([])
+  router.push("/statistics")
+}, [router])
+
+
+
+
 
   // timer loop
   useEffect(() => {
@@ -136,25 +193,33 @@ const useContest = () => {
   }
 
   // refresh solved status
+  // refresh solved status
   const refresh = useCallback(async () => {
     if (!user || problems.length === 0) return
-    const subRes = await getSubmissions(user.cf_handle, 20)
-    if (!subRes.success) return
-    const updated = checkSolvedStatus(problems, subRes.data)
-    const supabase = (await import("@/lib/supabase")).createClient()
-    for (const p of updated) {
-      await supabase.from("session_problems")
-        .update({ status: p.status, solved_time: p.solved_time })
-        .eq("id", p.id)
+    setIsRefreshing(true)
+    try {
+      const subRes = await getSubmissions(user.cf_handle, 20)
+      if (!subRes.success) return
+      const updated = checkSolvedStatus(problems, subRes.data)
+      const supabase = (await import("@/lib/supabase")).createClient()
+      for (const p of updated) {
+        await supabase.from("session_problems")
+          .update({ status: p.status, solved_time: p.solved_time })
+          .eq("id", p.id)
+      }
+      setProblems(updated)
+      setLastRefreshed(Date.now())
+    } finally {
+      setIsRefreshing(false)
     }
-    setProblems(updated)
   }, [user, problems])
 
   return {
-    problems, duration, problemCount, ratingMin, ratingMax,
-    startedAt, timeLeft, isGenerating,
-    setDuration, setProblemCount, setRatingMin, setRatingMax,
-    generate, start, refresh, finish,
+  problems, duration, problemCount, ratingMin, ratingMax,
+  startedAt, timeLeft, isGenerating, isRefreshing, lastRefreshed,
+  analysis, isAnalyzing,
+  setDuration, setProblemCount, setRatingMin, setRatingMax,
+  generate, start, refresh, finish, dismissAnalysis,
   }
 }
 

@@ -60,7 +60,7 @@ const getActiveSession = async (
     const supabase = createClient()
     const { data, error } = await supabase
       .from("sessions")
-      .select("*, session_problems(*)")
+      .select("*, problems:session_problems(*)")
       .eq("user_id", userId)
       .eq("is_completed", false)
       .order("created_at", { ascending: false })
@@ -160,7 +160,7 @@ const getSessions = async (
     const supabase = createClient()
     const { data, error } = await supabase
       .from("sessions")
-      .select("*, session_problems(*)")
+      .select("*, problems:session_problems(*)")
       .eq("user_id", userId)
       .eq("is_completed", true)
       .order("created_at", { ascending: false })

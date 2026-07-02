@@ -6,23 +6,38 @@ const checkSolvedStatus = (
   submissions: CodeforcesSubmission[],
 ): SessionProblem[] => {
   return sessionProblems.map((problem) => {
-    // already marked solved, skip
-    if (problem.solved_time !== null) return problem;
+    // solved is permanent — never downgraded by a later WA
+    if (problem.status === "solved") return problem;
 
-    // find a successful submission matching this problem
-    const match = submissions.find(
+    // all submissions for this specific problem, most recent first
+    const matches = submissions.filter(
       (s) =>
-        s.verdict === "OK" &&
         s.problem.contestId === problem.contest_id &&
         s.problem.index === problem.index,
     );
 
-    // if match found, set solved_time to now
-    if (match) {
-      return { ...problem, solved_time: Date.now() };
+    if (matches.length === 0) {
+      return { ...problem, status: "none" };
     }
 
-    return problem;
+    const solved = matches.find((s) => s.verdict === "OK");
+    if (solved) {
+      return {
+        ...problem,
+        status: "solved",
+        solved_time: solved.creationTimeSeconds * 1000,
+      };
+    }
+
+    const testing = matches.find(
+      (s) => s.verdict === "TESTING" || s.verdict === undefined,
+    );
+    if (testing) {
+      return { ...problem, status: "testing" };
+    }
+
+    // has submissions, none OK or in-queue -> wrong
+    return { ...problem, status: "wrong" };
   });
 };
 

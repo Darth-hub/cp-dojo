@@ -14,6 +14,7 @@ import {
 import getRandomProblems from "@/utils/getRandomProblems"
 import { getSubmissions } from "@/services/problem.service"
 import checkSolvedStatus from "@/utils/checkSolvedStatus"
+import { getWeakTags, WeakTag } from "@/services/statistics.service"
 
 const ALL_PROBLEMS_KEY = "cpdojo-all-problems"
 const SOLVED_PROBLEMS_KEY = (handle: string) => `cpdojo-solved-${handle}`
@@ -25,10 +26,13 @@ const useTraining = () => {
   const [problems, setProblems] = useState<SessionProblem[]>([])
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [isChecking, setIsChecking] = useState(false)
+  const [lastChecked, setLastChecked] = useState<number | null>(null)
   const [ratingMin, setRatingMin] = useState(800)
   const [ratingMax, setRatingMax] = useState(1600)
   const [selectedTags, setSelectedTags] = useState<ProblemTag[]>([])
   const [problemCount, setProblemCount] = useState(4)
+  const [weakTags, setWeakTags] = useState<WeakTag[]>([])
 
   // fetch all CF problems, cached for 1 hour
   const { data: allProblems } = useSWR<CodeforcesProblem[]>(
@@ -68,14 +72,23 @@ const useTraining = () => {
     restore()
   }, [user])
 
+  // fetch weak tags for the suggestion banner
+  useEffect(() => {
+    if (!user) return
+    const fetchWeakTags = async () => {
+      const res = await getWeakTags(user.id)
+      if (res.success) setWeakTags(res.data)
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchWeakTags()
+  }, [user])
+
   // generate a new problem set
   const generate = async () => {
     if (!user || !allProblems) return
     setIsGenerating(true)
     try {
       // delete old incomplete session if exists
-      await deleteActiveSession(user.id)
-
       // pick random problems
       const picked = getRandomProblems(
         allProblems,
@@ -139,33 +152,44 @@ const useTraining = () => {
 
 
   const checkDone = async () => {
-  if (!user || problems.length === 0) return
-  const submissionsRes = await getSubmissions(user.cf_handle, 10)
-  if (!submissionsRes.success) return
-  const updated = checkSolvedStatus(problems, submissionsRes.data)
-  const supabase = (await import("@/lib/supabase")).createClient()
-  for (const p of updated) {
-    await supabase
-      .from("session_problems")
-      .update({ status: p.status, solved_time: p.solved_time })
-      .eq("id", p.id)
+    if (!user || problems.length === 0) return
+    setIsChecking(true)
+    try {
+      const submissionsRes = await getSubmissions(user.cf_handle, 10)
+      if (!submissionsRes.success) return
+      const updated = checkSolvedStatus(problems, submissionsRes.data)
+      const supabase = (await import("@/lib/supabase")).createClient()
+      for (const p of updated) {
+        await supabase
+          .from("session_problems")
+          .update({ status: p.status, solved_time: p.solved_time })
+          .eq("id", p.id)
+      }
+      setProblems(updated)
+      setLastChecked(Date.now())
+    } finally {
+      setIsChecking(false)
+    }
   }
-  setProblems(updated)
-}
 
   const onClearTags = () => setSelectedTags([])
+  const applySuggestedTags = (tags: ProblemTag[]) => setSelectedTags(tags)
 
   return {
     problems,
     isGenerating,
+    isChecking,
+    lastChecked,
     ratingMin,
     ratingMax,
     selectedTags,
     allProblems: allProblems ?? [],
+    weakTags,
     setRatingMin,
     setRatingMax,
     onTagClick,
     onClearTags,
+    applySuggestedTags,
     generate,
     toggleBookmark,
     problemCount,

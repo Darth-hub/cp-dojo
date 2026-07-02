@@ -8,13 +8,17 @@ export default function TrainingPage() {
   const {
     problems,
     isGenerating,
+    isChecking,
+    lastChecked,
     ratingMin,
     ratingMax,
     selectedTags,
+    weakTags,
     setRatingMin,
     setRatingMax,
     onTagClick,
     onClearTags,
+    applySuggestedTags,
     generate,
     toggleBookmark,
     problemCount,
@@ -161,7 +165,47 @@ export default function TrainingPage() {
               }}
             />
           </div>
-
+          {/* weak tag suggestion */}
+          {weakTags.length > 0 && (
+            <div
+              style={{
+                marginBottom: "1.5rem",
+                padding: "0.75rem 1rem",
+                background: "#f5f0eb",
+                border: "1px solid #e8ddd0",
+                borderLeft: "3px solid #c0392b",
+              }}
+            >
+              <p
+                style={{
+                  color: "#8c7b6b",
+                  fontSize: "12px",
+                  margin: "0 0 0.5rem",
+                }}
+              >
+                Based on your history, you struggle with:{" "}
+                <span style={{ color: "#2c2420", fontWeight: "bold" }}>
+                  {weakTags.map((t) => t.tag).join(", ")}
+                </span>
+              </p>
+              <span
+                onClick={() => {
+                  const matched = allTags.filter((t) =>
+                    weakTags.some((w) => w.tag === t.value)
+                  );
+                  applySuggestedTags(matched);
+                }}
+                style={{
+                  color: "#c0392b",
+                  fontSize: "11px",
+                  letterSpacing: "0.05em",
+                  cursor: "pointer",
+                }}
+              >
+                use suggested tags →
+              </span>
+            </div>
+          )}
           {/* tag selector */}
           <div style={{ marginBottom: "1.5rem" }}>
             <div
@@ -276,8 +320,14 @@ export default function TrainingPage() {
                 <p style={{ color: "#8c7b6b", fontSize: "11px", margin: 0 }}>
                   {problems.length} problems
                 </p>
+                {lastChecked && (
+                  <p style={{ color: "#8c7b6b", fontSize: "11px", margin: 0 }}>
+                    更新済み · {new Date(lastChecked).toLocaleTimeString()}
+                  </p>
+                )}
                 <button
                   onClick={checkDone}
+                  disabled={isChecking}
                   style={{
                     background: "transparent",
                     color: "#8c7b6b",
@@ -285,10 +335,11 @@ export default function TrainingPage() {
                     padding: "4px 12px",
                     fontFamily: "Georgia, serif",
                     fontSize: "11px",
-                    cursor: "pointer",
+                    cursor: isChecking ? "not-allowed" : "pointer",
+                    opacity: isChecking ? 0.6 : 1,
                   }}
                 >
-                  確認 · check
+                  {isChecking ? "確認中…" : "確認 · check"}
                 </button>
               </div>
             </div>
