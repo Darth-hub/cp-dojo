@@ -9,6 +9,7 @@ export default function TrainingPage() {
     problems,
     isGenerating,
     isChecking,
+    isBuildingModel,
     lastChecked,
     ratingMin,
     ratingMax,
@@ -267,28 +268,40 @@ export default function TrainingPage() {
               })}
             </div>
           </div>
-
           {/* generate button */}
-          <button
-            onClick={generate}
-            disabled={isGenerating}
-            style={{
-              background: isGenerating ? "#e8ddd0" : "#2c2420",
-              color: isGenerating ? "#c8b8a2" : "#f5f0eb",
-              border: "none",
-              padding: "12px 2rem",
-              fontFamily: "Georgia, serif",
-              fontSize: "12px",
-              letterSpacing: "0.12em",
-              cursor: isGenerating ? "wait" : "pointer",
-            }}
-          >
-            {isGenerating
-              ? "生成中..."
-              : problems.length > 0
-                ? "再生成 · regenerate"
-                : "生成 · generate"}
-          </button>
+
+{isBuildingModel && (
+  <p
+    style={{
+      fontSize: "0.85rem",
+      color: "#8c7b6b",
+      margin: "0 0 0.75rem",
+    }}
+  >
+    分析中 · personalizing difficulty from your CF history…
+  </p>
+)}
+
+<button
+  onClick={generate}
+  disabled={isGenerating}
+  style={{
+    background: isGenerating ? "#e8ddd0" : "#2c2420",
+    color: isGenerating ? "#c8b8a2" : "#f5f0eb",
+    border: "none",
+    padding: "12px 2rem",
+    fontFamily: "Georgia, serif",
+    fontSize: "12px",
+    letterSpacing: "0.12em",
+    cursor: isGenerating ? "wait" : "pointer",
+  }}
+>
+  {isGenerating
+    ? "生成中..."
+    : problems.length > 0
+      ? "再生成 · regenerate"
+      : "生成 · generate"}
+</button>
         </div>
 
         {/* problem list */}
