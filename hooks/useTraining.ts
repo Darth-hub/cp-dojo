@@ -15,6 +15,7 @@ import getRandomProblems from "@/utils/getRandomProblems"
 import { getSubmissions } from "@/services/problem.service"
 import checkSolvedStatus from "@/utils/checkSolvedStatus"
 import { getWeakTags, WeakTag } from "@/services/statistics.service"
+import { addBookmark, removeBookmark } from "@/services/bookmark.service"
 
 const ALL_PROBLEMS_KEY = "cpdojo-all-problems"
 const SOLVED_PROBLEMS_KEY = (handle: string) => `cpdojo-solved-${handle}`
@@ -38,9 +39,9 @@ const useTraining = () => {
   const { data: allProblems } = useSWR<CodeforcesProblem[]>(
     ALL_PROBLEMS_KEY,
     async () => {
-      const res = await getAllProblems()
-      if (!res.success) throw new Error(res.error)
-      return res.data
+      const res = await fetch("/api/problems")
+      if (!res.ok) throw new Error("Failed to fetch problems")
+      return res.json()
     },
     { revalidateOnFocus: false, dedupingInterval: 3600000 }
   )
@@ -127,20 +128,39 @@ const useTraining = () => {
   }
 
   // bookmark or unbookmark a problem
+  // bookmark or unbookmark a problem
   const toggleBookmark = async (problem: SessionProblem) => {
-    if (!sessionId) return
+    if (!sessionId || !user) return
+    const isBookmarked = problem.bookmarked
+    if (isBookmarked) {
+      const res = await removeBookmark(user.id, problem.contest_id, problem.index)
+      if (!res.success) return
+    } else {
+      const res = await addBookmark(user.id, {
+        contest_id: problem.contest_id,
+        index: problem.index,
+        name: problem.name,
+        rating: problem.rating,
+        tags: problem.tags,
+        url: problem.url,
+      })
+      if (!res.success) return
+    }
+    // keep the boolean flag on session_problems in sync for row-level UI
+    // (e.g. the ★/☆ icon on the training/upsolve pages), but bookmarks
+    // table is now the actual source of truth
     const supabase = (await import("@/lib/supabase")).createClient()
-    const { error } = await supabase
+    await supabase
       .from("session_problems")
-      .update({ bookmarked: !problem.bookmarked })
+      .update({ bookmarked: !isBookmarked })
       .eq("id", problem.id)
-    if (error) return
     setProblems((prev) =>
       prev.map((p) =>
-        p.id === problem.id ? { ...p, bookmarked: !p.bookmarked } : p
+        p.id === problem.id ? { ...p, bookmarked: !isBookmarked } : p
       )
     )
   }
+
 
   const onTagClick = (tag: ProblemTag) => {
     setSelectedTags((prev) =>

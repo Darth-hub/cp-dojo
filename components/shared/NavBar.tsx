@@ -5,6 +5,7 @@ const NAV_ITEMS = [
   ["修行 · Training", "/training"],
   ["競争 · Contest", "/contest"],
   ["復習 · Upsolve", "/upsolve"],
+  ["保存 · Bookmarks", "/bookmarks"],
   ["統計 · Statistics", "/statistics"],
 ];
 

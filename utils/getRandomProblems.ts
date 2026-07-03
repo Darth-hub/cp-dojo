@@ -46,6 +46,7 @@ const getRandomProblems = (
     tags: p.tags,
     url: `https://codeforces.com/contest/${p.contestId}/problem/${p.index}`,
     solved_time: null,
+    status: "none",
     bookmarked: false,
     upsolved: false,
   }))

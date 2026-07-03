@@ -29,7 +29,7 @@ const getSubmissions = async (
 ): Promise<Response<CodeforcesSubmission[]>> => {
   try {
     const result = await cfFetch(
-      `user.status?handle=${handle}&from=1&count=${count}`,
+      `user.status?handle=${handle}`,
     );
     return SuccessResponse(result);
   } catch (error) {

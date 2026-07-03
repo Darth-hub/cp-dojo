@@ -136,14 +136,14 @@ const finishSession = async (
     if (error) return ErrorResponse(error.message)
 
     // update solved_time for each solved problem
+    // update status + solved_time for each solved problem
     for (const p of solvedProblems) {
       await supabase
         .from("session_problems")
-        .update({ solved_time: now })
+        .update({ status: "solved", solved_time: now })
         .eq("session_id", sessionId)
         .eq("contest_id", p.contestId)
         .eq("index", p.index)
-        .is("solved_time", null) // only update if not already set
     }
 
     return SuccessResponse(data as Session)

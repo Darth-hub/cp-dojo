@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation"
 import useUser from "@/hooks/useUser"
 import { SessionProblem } from "@/types/SessionProblem"
 import { CodeforcesProblem, ProblemTag } from "@/types/Codeforces"
-import { getAllProblems, getSolvedProblems, getSubmissions } from "@/services/problem.service"
+import { getSolvedProblems, getSubmissions } from "@/services/problem.service"
 import {
   createSession, saveSessionProblems, getActiveSession,
   deleteActiveSession, startSession, finishSession,
@@ -45,9 +45,9 @@ const useContest = () => {
   const { data: allProblems } = useSWR<CodeforcesProblem[]>(
     "cpdojo-all-problems",
     async () => {
-      const res = await getAllProblems()
-      if (!res.success) throw new Error(res.error)
-      return res.data
+      const res = await fetch("/api/problems")
+      if (!res.ok) throw new Error("Failed to fetch problems")
+      return res.json()
     },
     { revalidateOnFocus: false, dedupingInterval: 3600000 }
   )

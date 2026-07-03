@@ -2,11 +2,12 @@
 import { useState } from "react"
 import useSWR from "swr"
 import { User } from "@/types/User"
-import { fetchUserData, verifyHandle, saveUserSupa } from "@/services/user.service"
 import { createClient } from "@/lib/supabase"
 
 const USER_CACHE_KEY = "cpdojo-user"
 const HANDLE_COOKIE_KEY = "cpdojo-handle"
+const SESSION_COOKIE_KEY = "cpdojo-session"
+
 
 // reads a cookie value by name from the browser
 const getCookie = (name: string) => {
@@ -64,29 +65,19 @@ const useUser = () => {
     setIsVerifying(true)
     setVerificationError(null)
     try {
-      const cfRes = await fetchUserData(handle)
-      if (!cfRes.success) {
-        setVerificationError(cfRes.error)
-        return false
-      }
-      const verifyRes = await verifyHandle(handle)
-      if (!verifyRes.success || !verifyRes.data) {
-        setVerificationError("Verification failed. Submit a compilation error on the given problem.")
-        return false
-      }
-      const saveRes = await saveUserSupa({
-        cf_handle: cfRes.data.handle,
-        cf_rating: cfRes.data.rating,
-        avatar_url: cfRes.data.avatar,
+      const res = await fetch("/api/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ handle }),
       })
-      if (!saveRes.success) {
-        setVerificationError(saveRes.error)
+      const data = await res.json()
+      if (!res.ok) {
+        setVerificationError(data.error ?? "Verification failed.")
         return false
       }
-      // store handle in cookie for 30 days
-      setCookie(HANDLE_COOKIE_KEY, cfRes.data.handle, 30)
-      // update SWR cache without refetching
-      await mutate(saveRes.data, { revalidate: false })
+      setCookie(HANDLE_COOKIE_KEY, data.user.cf_handle, 30)
+      setCookie(SESSION_COOKIE_KEY, data.token, 30)
+      await mutate(data.user, { revalidate: false })
       return true
     } catch (error) {
       setVerificationError((error as Error).message)
@@ -99,6 +90,7 @@ const useUser = () => {
   // clears cookie and resets user state to null
   const logout = () => {
     deleteCookie(HANDLE_COOKIE_KEY)
+    deleteCookie(SESSION_COOKIE_KEY)
     mutate(null, { revalidate: false })
   }
 

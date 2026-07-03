@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from "react"
 import { SessionProblem } from "@/types/SessionProblem"
 import useUser from "@/hooks/useUser"
 import { getUpsolveProblems, setUpsolved } from "@/services/upsolve.service"
+import { addBookmark, removeBookmark } from "@/services/bookmark.service"
 
 const useUpsolve = () => {
   const { user } = useUser()
@@ -29,16 +30,32 @@ const useUpsolve = () => {
   }, [fetchUpsolveProblems])
 
   // bookmark or unbookmark a problem (same shape as useTraining's toggleBookmark)
+  // bookmark or unbookmark a problem
   const toggleBookmark = async (problem: SessionProblem) => {
+    if (!user) return
+    const isBookmarked = problem.bookmarked
+    if (isBookmarked) {
+      const res = await removeBookmark(user.id, problem.contest_id, problem.index)
+      if (!res.success) return
+    } else {
+      const res = await addBookmark(user.id, {
+        contest_id: problem.contest_id,
+        index: problem.index,
+        name: problem.name,
+        rating: problem.rating,
+        tags: problem.tags,
+        url: problem.url,
+      })
+      if (!res.success) return
+    }
     const supabase = (await import("@/lib/supabase")).createClient()
-    const { error } = await supabase
+    await supabase
       .from("session_problems")
-      .update({ bookmarked: !problem.bookmarked })
+      .update({ bookmarked: !isBookmarked })
       .eq("id", problem.id)
-    if (error) return
     setProblems((prev) =>
       prev.map((p) =>
-        p.id === problem.id ? { ...p, bookmarked: !p.bookmarked } : p
+        p.id === problem.id ? { ...p, bookmarked: !isBookmarked } : p
       )
     )
   }

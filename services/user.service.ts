@@ -42,26 +42,4 @@ const verifyHandle = async (
   }
 }
 
-const saveUserSupa = async (user: {
-  cf_handle: string
-  cf_rating: number
-  avatar_url: string
-}): Promise<Response<User>> => {
-  try {
-    const supabase = createClient()
-    const { data, error } = await supabase
-      .from("users")
-      .upsert(
-        { ...user, platform_rating: 1500 },
-        { onConflict: "cf_handle" }
-      )
-      .select()
-      .single()
-    if (error) return ErrorResponse(error.message)
-    return SuccessResponse(data as User)
-  } catch (error) {
-    return ErrorResponse((error as Error).message)
-  }
-}
-
-export { fetchUserData, verifyHandle, saveUserSupa }
+export { fetchUserData, verifyHandle }
