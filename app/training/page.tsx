@@ -3,6 +3,7 @@ import useTraining from "@/hooks/useTraining";
 import tagData from "@/public/data/tag.json";
 import { ProblemTag } from "@/types/Codeforces";
 import NavBar from "@/components/shared/NavBar";
+import useTheme from "@/hooks/useTheme";
 
 export default function TrainingPage() {
   const {
@@ -27,13 +28,14 @@ export default function TrainingPage() {
     checkDone,
   } = useTraining();
 
+  const { tokens } = useTheme();
   const allTags = tagData as ProblemTag[];
 
   return (
     <div
       style={{
         minHeight: "100vh",
-        background: "#f5f0eb",
+        background: tokens.background,
         fontFamily: "Georgia, serif",
       }}
     >
@@ -45,7 +47,7 @@ export default function TrainingPage() {
         <div style={{ marginBottom: "2.5rem" }}>
           <p
             style={{
-              color: "#c0392b",
+              color: tokens.accent,
               fontSize: "11px",
               letterSpacing: "0.2em",
               margin: "0 0 0.5rem",
@@ -55,7 +57,7 @@ export default function TrainingPage() {
           </p>
           <h1
             style={{
-              color: "#2c2420",
+              color: tokens.text,
               fontSize: "32px",
               fontWeight: "bold",
               margin: 0,
@@ -68,10 +70,10 @@ export default function TrainingPage() {
         {/* controls */}
         <div
           style={{
-            border: "1px solid #c8b8a2",
-            borderTop: "3px solid #c0392b",
+            border: `1px solid ${tokens.borderStrong}`,
+            borderTop: `3px solid ${tokens.accent}`,
             padding: "2rem",
-            background: "#faf7f4",
+            background: tokens.panel,
             marginBottom: "2rem",
           }}
         >
@@ -79,7 +81,7 @@ export default function TrainingPage() {
           <div style={{ marginBottom: "1.5rem" }}>
             <p
               style={{
-                color: "#8c7b6b",
+                color: tokens.muted,
                 fontSize: "11px",
                 letterSpacing: "0.12em",
                 margin: "0 0 0.75rem",
@@ -97,17 +99,17 @@ export default function TrainingPage() {
                 max={3500}
                 style={{
                   width: "100px",
-                  background: "#f5f0eb",
-                  color: "#2c2420",
-                  border: "1px solid #c8b8a2",
-                  borderBottom: "2px solid #2c2420",
+                  background: tokens.background,
+                  color: tokens.text,
+                  border: `1px solid ${tokens.borderStrong}`,
+                  borderBottom: `2px solid ${tokens.text}`,
                   padding: "8px 12px",
                   fontFamily: "Georgia, serif",
                   fontSize: "14px",
                   outline: "none",
                 }}
               />
-              <span style={{ color: "#8c7b6b", fontSize: "12px" }}>〜</span>
+              <span style={{ color: tokens.muted, fontSize: "12px" }}>〜</span>
               <input
                 type="number"
                 value={ratingMax}
@@ -117,10 +119,10 @@ export default function TrainingPage() {
                 max={3500}
                 style={{
                   width: "100px",
-                  background: "#f5f0eb",
-                  color: "#2c2420",
-                  border: "1px solid #c8b8a2",
-                  borderBottom: "2px solid #2c2420",
+                  background: tokens.background,
+                  color: tokens.text,
+                  border: `1px solid ${tokens.borderStrong}`,
+                  borderBottom: `2px solid ${tokens.text}`,
                   padding: "8px 12px",
                   fontFamily: "Georgia, serif",
                   fontSize: "14px",
@@ -134,7 +136,7 @@ export default function TrainingPage() {
           <div style={{ marginBottom: "1.5rem" }}>
             <p
               style={{
-                color: "#8c7b6b",
+                color: tokens.muted,
                 fontSize: "11px",
                 letterSpacing: "0.12em",
                 margin: "0 0 0.75rem",
@@ -155,10 +157,10 @@ export default function TrainingPage() {
               step={1}
               style={{
                 width: "80px",
-                background: "#f5f0eb",
-                color: "#2c2420",
-                border: "1px solid #c8b8a2",
-                borderBottom: "2px solid #2c2420",
+                background: tokens.background,
+                color: tokens.text,
+                border: `1px solid ${tokens.borderStrong}`,
+                borderBottom: `2px solid ${tokens.text}`,
                 padding: "8px 12px",
                 fontFamily: "Georgia, serif",
                 fontSize: "14px",
@@ -172,20 +174,20 @@ export default function TrainingPage() {
               style={{
                 marginBottom: "1.5rem",
                 padding: "0.75rem 1rem",
-                background: "#f5f0eb",
-                border: "1px solid #e8ddd0",
-                borderLeft: "3px solid #c0392b",
+                background: tokens.background,
+                border: `1px solid ${tokens.border}`,
+                borderLeft: `3px solid ${tokens.accent}`,
               }}
             >
               <p
                 style={{
-                  color: "#8c7b6b",
+                  color: tokens.muted,
                   fontSize: "12px",
                   margin: "0 0 0.5rem",
                 }}
               >
                 Based on your history, you struggle with:{" "}
-                <span style={{ color: "#2c2420", fontWeight: "bold" }}>
+                <span style={{ color: tokens.text, fontWeight: "bold" }}>
                   {weakTags.map((t) => t.tag).join(", ")}
                 </span>
               </p>
@@ -197,7 +199,7 @@ export default function TrainingPage() {
                   applySuggestedTags(matched);
                 }}
                 style={{
-                  color: "#c0392b",
+                  color: tokens.accent,
                   fontSize: "11px",
                   letterSpacing: "0.05em",
                   cursor: "pointer",
@@ -219,7 +221,7 @@ export default function TrainingPage() {
             >
               <p
                 style={{
-                  color: "#8c7b6b",
+                  color: tokens.muted,
                   fontSize: "11px",
                   letterSpacing: "0.12em",
                   margin: 0,
@@ -231,7 +233,7 @@ export default function TrainingPage() {
                 <span
                   onClick={onClearTags}
                   style={{
-                    color: "#c0392b",
+                    color: tokens.accent,
                     fontSize: "11px",
                     cursor: "pointer",
                     letterSpacing: "0.05em",
@@ -253,9 +255,9 @@ export default function TrainingPage() {
                     style={{
                       padding: "4px 10px",
                       border: "1px solid",
-                      borderColor: selected ? "#c0392b" : "#c8b8a2",
-                      background: selected ? "#c0392b" : "transparent",
-                      color: selected ? "#faf7f4" : "#8c7b6b",
+                      borderColor: selected ? tokens.accent : tokens.borderStrong,
+                      background: selected ? tokens.accent : "transparent",
+                      color: selected ? tokens.accentText : tokens.muted,
                       fontSize: "11px",
                       letterSpacing: "0.05em",
                       cursor: "pointer",
@@ -270,47 +272,47 @@ export default function TrainingPage() {
           </div>
           {/* generate button */}
 
-{isBuildingModel && (
-  <p
-    style={{
-      fontSize: "0.85rem",
-      color: "#8c7b6b",
-      margin: "0 0 0.75rem",
-    }}
-  >
-    分析中 · personalizing difficulty from your CF history…
-  </p>
-)}
+          {isBuildingModel && (
+            <p
+              style={{
+                fontSize: "0.85rem",
+                color: tokens.muted,
+                margin: "0 0 0.75rem",
+              }}
+            >
+              分析中 · personalizing difficulty from your CF history…
+            </p>
+          )}
 
-<button
-  onClick={generate}
-  disabled={isGenerating}
-  style={{
-    background: isGenerating ? "#e8ddd0" : "#2c2420",
-    color: isGenerating ? "#c8b8a2" : "#f5f0eb",
-    border: "none",
-    padding: "12px 2rem",
-    fontFamily: "Georgia, serif",
-    fontSize: "12px",
-    letterSpacing: "0.12em",
-    cursor: isGenerating ? "wait" : "pointer",
-  }}
->
-  {isGenerating
-    ? "生成中..."
-    : problems.length > 0
-      ? "再生成 · regenerate"
-      : "生成 · generate"}
-</button>
+          <button
+            onClick={generate}
+            disabled={isGenerating}
+            style={{
+              background: isGenerating ? tokens.border : tokens.text,
+              color: isGenerating ? tokens.borderStrong : tokens.background,
+              border: "none",
+              padding: "12px 2rem",
+              fontFamily: "Georgia, serif",
+              fontSize: "12px",
+              letterSpacing: "0.12em",
+              cursor: isGenerating ? "wait" : "pointer",
+            }}
+          >
+            {isGenerating
+              ? "生成中..."
+              : problems.length > 0
+                ? "再生成 · regenerate"
+                : "生成 · generate"}
+          </button>
         </div>
 
         {/* problem list */}
         {problems.length > 0 && (
-          <div style={{ border: "1px solid #c8b8a2", background: "#faf7f4" }}>
+          <div style={{ border: `1px solid ${tokens.borderStrong}`, background: tokens.panel }}>
             <div
               style={{
                 padding: "1rem 1.5rem",
-                borderBottom: "1px solid #e8ddd0",
+                borderBottom: `1px solid ${tokens.border}`,
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
@@ -318,7 +320,7 @@ export default function TrainingPage() {
             >
               <p
                 style={{
-                  color: "#2c2420",
+                  color: tokens.text,
                   fontSize: "13px",
                   fontWeight: "bold",
                   margin: 0,
@@ -330,11 +332,11 @@ export default function TrainingPage() {
               <div
                 style={{ display: "flex", alignItems: "center", gap: "1rem" }}
               >
-                <p style={{ color: "#8c7b6b", fontSize: "11px", margin: 0 }}>
+                <p style={{ color: tokens.muted, fontSize: "11px", margin: 0 }}>
                   {problems.length} problems
                 </p>
                 {lastChecked && (
-                  <p style={{ color: "#8c7b6b", fontSize: "11px", margin: 0 }}>
+                  <p style={{ color: tokens.muted, fontSize: "11px", margin: 0 }}>
                     更新済み · {new Date(lastChecked).toLocaleTimeString()}
                   </p>
                 )}
@@ -343,8 +345,8 @@ export default function TrainingPage() {
                   disabled={isChecking}
                   style={{
                     background: "transparent",
-                    color: "#8c7b6b",
-                    border: "1px solid #c8b8a2",
+                    color: tokens.muted,
+                    border: `1px solid ${tokens.borderStrong}`,
                     padding: "4px 12px",
                     fontFamily: "Georgia, serif",
                     fontSize: "11px",
@@ -362,7 +364,7 @@ export default function TrainingPage() {
                 style={{
                   padding: "1rem 1.5rem",
                   borderBottom:
-                    i < problems.length - 1 ? "1px solid #e8ddd0" : "none",
+                    i < problems.length - 1 ? `1px solid ${tokens.border}` : "none",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
@@ -384,7 +386,7 @@ export default function TrainingPage() {
                 >
                   <span
                     style={{
-                      color: "#c8b8a2",
+                      color: tokens.borderStrong,
                       fontSize: "12px",
                       minWidth: "20px",
                     }}
@@ -396,7 +398,7 @@ export default function TrainingPage() {
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{
-                      color: "#2c2420",
+                      color: tokens.text,
                       fontSize: "14px",
                       textDecoration: "none",
                       fontWeight: "bold",
@@ -408,13 +410,13 @@ export default function TrainingPage() {
                 <div
                   style={{ display: "flex", alignItems: "center", gap: "1rem" }}
                 >
-                  <span style={{ color: "#8c7b6b", fontSize: "12px" }}>
+                  <span style={{ color: tokens.muted, fontSize: "12px" }}>
                     {problem.rating}
                   </span>
                   <span
                     onClick={() => toggleBookmark(problem)}
                     style={{
-                      color: problem.bookmarked ? "#c0392b" : "#c8b8a2",
+                      color: problem.bookmarked ? tokens.accent : tokens.borderStrong,
                       fontSize: "16px",
                       cursor: "pointer",
                     }}

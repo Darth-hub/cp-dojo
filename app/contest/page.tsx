@@ -1,6 +1,7 @@
 "use client"
 import NavBar from "@/components/shared/NavBar"
 import useContest from "@/hooks/useContest"
+import useTheme from "@/hooks/useTheme"
 import { createElement } from "react"
 
 const formatTime = (ms: number) => {
@@ -19,25 +20,26 @@ export default function ContestPage() {
     generate, start, refresh, finish, dismissAnalysis,
   } = useContest()
 
+  const { tokens } = useTheme()
   const isRunning = startedAt !== null
   const hasProblems = problems.length > 0
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f5f0eb", fontFamily: "Georgia, serif" }}>
+    <div style={{ minHeight: "100vh", background: tokens.background, fontFamily: "Georgia, serif" }}>
       <NavBar />
       <div style={{ maxWidth: "900px", margin: "0 auto", padding: "3rem 2rem" }}>
 
-        <p style={{ color: "#c0392b", fontSize: "11px", letterSpacing: "0.2em", margin: "0 0 0.5rem" }}>
+        <p style={{ color: tokens.accent, fontSize: "11px", letterSpacing: "0.2em", margin: "0 0 0.5rem" }}>
           競争 · CONTEST
         </p>
-        <h1 style={{ color: "#2c2420", fontSize: "32px", fontWeight: "bold", margin: "0 0 2.5rem" }}>
+        <h1 style={{ color: tokens.text, fontSize: "32px", fontWeight: "bold", margin: "0 0 2.5rem" }}>
           Contest Simulator
         </h1>
 
         {isRunning && (
           <div style={{
-            background: "#faf7f4",
-            border: "1px solid #e8ddd0",
+            background: tokens.panel,
+            border: `1px solid ${tokens.border}`,
             borderRadius: "8px",
             padding: "1.5rem 2rem",
             marginBottom: "2rem",
@@ -46,11 +48,11 @@ export default function ContestPage() {
             justifyContent: "space-between",
           }}>
             <div>
-              <p style={{ color: "#8c7b6b", fontSize: "11px", letterSpacing: "0.15em", margin: "0 0 0.25rem" }}>
+              <p style={{ color: tokens.muted, fontSize: "11px", letterSpacing: "0.15em", margin: "0 0 0.25rem" }}>
                 残り時間 · TIME LEFT
               </p>
               <p style={{
-                color: timeLeft < 300000 ? "#c0392b" : "#2c2420",
+                color: timeLeft < 300000 ? tokens.accent : tokens.text,
                 fontSize: "40px",
                 fontWeight: "bold",
                 margin: 0,
@@ -62,7 +64,7 @@ export default function ContestPage() {
             </div>
             <div style={{ textAlign: "right" }}>
               {lastRefreshed && (
-                <p style={{ color: "#8c7b6b", fontSize: "11px", margin: "0 0 0.5rem" }}>
+                <p style={{ color: tokens.muted, fontSize: "11px", margin: "0 0 0.5rem" }}>
                   更新済み · updated {new Date(lastRefreshed).toLocaleTimeString()}
                 </p>
               )}
@@ -73,9 +75,9 @@ export default function ContestPage() {
                   style={{
                     padding: "0.6rem 1.4rem",
                     background: "transparent",
-                    border: "1px solid #c8b8a2",
+                    border: `1px solid ${tokens.borderStrong}`,
                     borderRadius: "4px",
-                    color: "#2c2420",
+                    color: tokens.text,
                     fontSize: "13px",
                     cursor: isRefreshing ? "not-allowed" : "pointer",
                     opacity: isRefreshing ? 0.6 : 1,
@@ -88,10 +90,10 @@ export default function ContestPage() {
                   onClick={finish}
                   style={{
                     padding: "0.6rem 1.4rem",
-                    background: "#c0392b",
+                    background: tokens.accent,
                     border: "none",
                     borderRadius: "4px",
-                    color: "#fff",
+                    color: tokens.accentText,
                     fontSize: "13px",
                     cursor: "pointer",
                     fontFamily: "Georgia, serif",
@@ -105,21 +107,21 @@ export default function ContestPage() {
         )}
         {(isAnalyzing || analysis) && (
           <div style={{
-            background: "#faf7f4",
-            border: "1px solid #e8ddd0",
+            background: tokens.panel,
+            border: `1px solid ${tokens.border}`,
             borderRadius: "8px",
             padding: "1.5rem 2rem",
             marginBottom: "2rem",
           }}>
-            <p style={{ color: "#c0392b", fontSize: "11px", letterSpacing: "0.15em", margin: "0 0 1rem" }}>
+            <p style={{ color: tokens.accent, fontSize: "11px", letterSpacing: "0.15em", margin: "0 0 1rem" }}>
               分析 · ANALYSIS
             </p>
             {isAnalyzing ? (
-              <p style={{ color: "#8c7b6b", fontSize: "13px" }}>考え中… analyzing your performance…</p>
+              <p style={{ color: tokens.muted, fontSize: "13px" }}>考え中… analyzing your performance…</p>
             ) : (
               <>
                 <p style={{
-                  color: "#2c2420",
+                  color: tokens.text,
                   fontSize: "14px",
                   lineHeight: "1.7",
                   whiteSpace: "pre-wrap",
@@ -131,10 +133,10 @@ export default function ContestPage() {
                   onClick={dismissAnalysis}
                   style={{
                     padding: "0.6rem 1.6rem",
-                    background: "#2c2420",
+                    background: tokens.text,
                     border: "none",
                     borderRadius: "4px",
-                    color: "#f5f0eb",
+                    color: tokens.background,
                     fontSize: "13px",
                     cursor: "pointer",
                     fontFamily: "Georgia, serif",
@@ -149,14 +151,14 @@ export default function ContestPage() {
 
         {!isRunning && !isAnalyzing && !analysis && (
           <div style={{
-            background: "#faf7f4",
-            border: "1px solid #e8ddd0",
+            background: tokens.panel,
+            border: `1px solid ${tokens.border}`,
             borderRadius: "8px",
             padding: "1.5rem 2rem",
             marginBottom: "2rem",
           }}>
             <div style={{ marginBottom: "1.25rem" }}>
-              <p style={{ color: "#8c7b6b", fontSize: "11px", letterSpacing: "0.15em", margin: "0 0 0.6rem" }}>
+              <p style={{ color: tokens.muted, fontSize: "11px", letterSpacing: "0.15em", margin: "0 0 0.6rem" }}>
                 時間 · DURATION
               </p>
               <div style={{ display: "flex", gap: "0.5rem" }}>
@@ -166,11 +168,11 @@ export default function ContestPage() {
                     onClick={() => setDuration(d)}
                     style={{
                       padding: "0.4rem 1rem",
-                      background: duration === d ? "#2c2420" : "transparent",
+                      background: duration === d ? tokens.text : "transparent",
                       border: "1px solid",
-                      borderColor: duration === d ? "#2c2420" : "#c8b8a2",
+                      borderColor: duration === d ? tokens.text : tokens.borderStrong,
                       borderRadius: "4px",
-                      color: duration === d ? "#f5f0eb" : "#2c2420",
+                      color: duration === d ? tokens.background : tokens.text,
                       fontSize: "13px",
                       cursor: "pointer",
                       fontFamily: "Georgia, serif",
@@ -183,7 +185,7 @@ export default function ContestPage() {
             </div>
 
             <div style={{ marginBottom: "1.25rem" }}>
-              <p style={{ color: "#8c7b6b", fontSize: "11px", letterSpacing: "0.15em", margin: "0 0 0.6rem" }}>
+              <p style={{ color: tokens.muted, fontSize: "11px", letterSpacing: "0.15em", margin: "0 0 0.6rem" }}>
                 問題数 · PROBLEMS
               </p>
               <div style={{ display: "flex", gap: "0.5rem" }}>
@@ -193,11 +195,11 @@ export default function ContestPage() {
                     onClick={() => setProblemCount(n)}
                     style={{
                       padding: "0.4rem 1rem",
-                      background: problemCount === n ? "#2c2420" : "transparent",
+                      background: problemCount === n ? tokens.text : "transparent",
                       border: "1px solid",
-                      borderColor: problemCount === n ? "#2c2420" : "#c8b8a2",
+                      borderColor: problemCount === n ? tokens.text : tokens.borderStrong,
                       borderRadius: "4px",
-                      color: problemCount === n ? "#f5f0eb" : "#2c2420",
+                      color: problemCount === n ? tokens.background : tokens.text,
                       fontSize: "13px",
                       cursor: "pointer",
                       fontFamily: "Georgia, serif",
@@ -210,7 +212,7 @@ export default function ContestPage() {
             </div>
 
             <div style={{ marginBottom: "1.5rem" }}>
-              <p style={{ color: "#8c7b6b", fontSize: "11px", letterSpacing: "0.15em", margin: "0 0 0.6rem" }}>
+              <p style={{ color: tokens.muted, fontSize: "11px", letterSpacing: "0.15em", margin: "0 0 0.6rem" }}>
                 評価範囲 · RATING RANGE
               </p>
               <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
@@ -222,15 +224,15 @@ export default function ContestPage() {
                   style={{
                     width: "90px",
                     padding: "0.4rem 0.6rem",
-                    border: "1px solid #c8b8a2",
+                    border: `1px solid ${tokens.borderStrong}`,
                     borderRadius: "4px",
-                    background: "#fff",
-                    color: "#2c2420",
+                    background: tokens.panel,
+                    color: tokens.text,
                     fontSize: "14px",
                     fontFamily: "Georgia, serif",
                   }}
                 />
-                <span style={{ color: "#8c7b6b", fontSize: "13px" }}>—</span>
+                <span style={{ color: tokens.muted, fontSize: "13px" }}>—</span>
                 <input
                   type="number"
                   value={ratingMax}
@@ -239,10 +241,10 @@ export default function ContestPage() {
                   style={{
                     width: "90px",
                     padding: "0.4rem 0.6rem",
-                    border: "1px solid #c8b8a2",
+                    border: `1px solid ${tokens.borderStrong}`,
                     borderRadius: "4px",
-                    background: "#fff",
-                    color: "#2c2420",
+                    background: tokens.panel,
+                    color: tokens.text,
                     fontSize: "14px",
                     fontFamily: "Georgia, serif",
                   }}
@@ -255,10 +257,10 @@ export default function ContestPage() {
               disabled={isGenerating}
               style={{
                 padding: "0.6rem 1.8rem",
-                background: "#2c2420",
+                background: tokens.text,
                 border: "none",
                 borderRadius: "4px",
-                color: "#f5f0eb",
+                color: tokens.background,
                 fontSize: "13px",
                 cursor: isGenerating ? "not-allowed" : "pointer",
                 opacity: isGenerating ? 0.6 : 1,
@@ -272,22 +274,22 @@ export default function ContestPage() {
 
         {hasProblems && !isAnalyzing && !analysis && (
           <div style={{
-            background: "#faf7f4",
-            border: "1px solid #e8ddd0",
+            background: tokens.panel,
+            border: `1px solid ${tokens.border}`,
             borderRadius: "8px",
             overflow: "hidden",
             marginBottom: "1.5rem",
           }}>
             <div style={{
               padding: "0.75rem 1.5rem",
-              borderBottom: "1px solid #e8ddd0",
+              borderBottom: `1px solid ${tokens.border}`,
               display: "grid",
               gridTemplateColumns: "2rem 1fr 5rem",
               gap: "1rem",
             }}>
-              <span style={{ color: "#8c7b6b", fontSize: "11px", letterSpacing: "0.15em" }}>#</span>
-              <span style={{ color: "#8c7b6b", fontSize: "11px", letterSpacing: "0.15em" }}>問題 · PROBLEM</span>
-              <span style={{ color: "#8c7b6b", fontSize: "11px", letterSpacing: "0.15em", textAlign: "right" }}>評価 · RATING</span>
+              <span style={{ color: tokens.muted, fontSize: "11px", letterSpacing: "0.15em" }}>#</span>
+              <span style={{ color: tokens.muted, fontSize: "11px", letterSpacing: "0.15em" }}>問題 · PROBLEM</span>
+              <span style={{ color: tokens.muted, fontSize: "11px", letterSpacing: "0.15em", textAlign: "right" }}>評価 · RATING</span>
             </div>
 
             {problems.map((problem, i) => {
@@ -302,7 +304,7 @@ export default function ContestPage() {
                   key={problem.id}
                   style={{
                     padding: "1rem 1.5rem",
-                    borderBottom: i < problems.length - 1 ? "1px solid #e8ddd0" : "none",
+                    borderBottom: i < problems.length - 1 ? `1px solid ${tokens.border}` : "none",
                     display: "grid",
                     gridTemplateColumns: "2rem 1fr 5rem",
                     gap: "1rem",
@@ -310,16 +312,16 @@ export default function ContestPage() {
                     background: rowColor,
                   }}
                 >
-                  <span style={{ color: "#8c7b6b", fontSize: "13px", fontWeight: "bold" }}>
+                  <span style={{ color: tokens.muted, fontSize: "13px", fontWeight: "bold" }}>
                     {String.fromCharCode(65 + i)}
                   </span>
                   <span>
                     {isRunning
-                      ? renderProblemLink(problem.url, problem.name)
-                      : <span style={{ color: "#8c7b6b", fontSize: "14px", letterSpacing: "0.1em" }}>???</span>
+                      ? renderProblemLink(problem.url, problem.name, tokens.accent)
+                      : <span style={{ color: tokens.muted, fontSize: "14px", letterSpacing: "0.1em" }}>???</span>
                     }
                   </span>
-                  <span style={{ color: "#8c7b6b", fontSize: "13px", textAlign: "right" }}>
+                  <span style={{ color: tokens.muted, fontSize: "13px", textAlign: "right" }}>
                     {isRunning ? problem.rating : "???"}
                   </span>
                 </div>
@@ -333,10 +335,10 @@ export default function ContestPage() {
             onClick={start}
             style={{
               padding: "0.7rem 2.5rem",
-              background: "#c0392b",
+              background: tokens.accent,
               border: "none",
               borderRadius: "4px",
-              color: "#fff",
+              color: tokens.accentText,
               fontSize: "14px",
               cursor: "pointer",
               fontFamily: "Georgia, serif",
@@ -352,14 +354,14 @@ export default function ContestPage() {
   )
 }
 
-function renderProblemLink(url: string, name: string) {
+function renderProblemLink(url: string, name: string, color: string) {
   return createElement(
     "a",
     {
       href: url,
       target: "_blank",
       rel: "noopener noreferrer",
-      style: { color: "#c0392b", fontSize: "14px", textDecoration: "none" },
+      style: { color, fontSize: "14px", textDecoration: "none" },
     },
     name
   )
