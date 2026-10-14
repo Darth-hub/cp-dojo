@@ -16,8 +16,7 @@ import { getSubmissions } from "@/services/problem.service"
 import checkSolvedStatus from "@/utils/checkSolvedStatus"
 import { getWeakTags, WeakTag } from "@/services/statistics.service"
 import { addBookmark, removeBookmark } from "@/services/bookmark.service"
-import { buildAdaptiveModel, AdaptiveModel } from "@/services/adaptiveDifficulty.service"
-import { scoreProblem } from "@/utils/logisticRegression"
+import { fetchAdaptiveModel, AdaptiveModel } from "@/services/adaptiveDifficulty.service"
 
 const ALL_PROBLEMS_KEY = "cpdojo-all-problems"
 const SOLVED_PROBLEMS_KEY = (handle: string) => `cpdojo-solved-${handle}`
@@ -90,16 +89,15 @@ const useTraining = () => {
 
 
 
-// build the adaptive difficulty model from the user's CF history.
-// null means either the fetch failed, or the user is below the
-// cold-start floor — getRandomProblems falls back to uniform random either way.
+// fetch the adaptive difficulty model (trained server-side by the model service
+// from the user's CF history). null means cold start or service unavailable —
+// getRandomProblems falls back to uniform random either way.
 useEffect(() => {
   if (!user) return
   const buildModel = async () => {
     setIsBuildingModel(true)
     try {
-      const model = await buildAdaptiveModel(user.cf_handle, user.platform_rating)
-      console.log("adaptive model:", model)
+      const model = await fetchAdaptiveModel()
       setAdaptiveModel(model)
     } catch {
       setAdaptiveModel(null)
@@ -129,13 +127,6 @@ useEffect(() => {
       adaptiveModel ?? undefined,
       user.platform_rating
     )
-
-    if (adaptiveModel) {
-  console.log("picked problems:", picked.map(p => ({
-    rating: p.rating,
-    predictedProbability: scoreProblem(adaptiveModel.weights, adaptiveModel.tagSolveRate, p.rating, p.tags, user.platform_rating),
-  })))
-}
 
       // create session in Supabase
       const sessionRes = await createSession(

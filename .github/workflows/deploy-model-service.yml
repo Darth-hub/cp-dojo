@@ -1,0 +1,68 @@
+name: Deploy model service
+
+# Runs after CI passes on main. Authenticates to AWS with GitHub OIDC
+# (short-lived credentials, no long-lived AWS keys stored in GitHub),
+# pushes the image to ECR, then tells App Runner to roll it out.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write # required for OIDC
+
+jobs:
+  deploy:
+    # skip when CI failed, or before AWS has been set up (repo variable unset)
+    if: >-
+      vars.AWS_DEPLOY_ROLE_ARN != '' &&
+      (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push image
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.event.workflow_run.head_sha || github.sha }}
+        run: |
+          image_uri="$REGISTRY/$ECR_REPOSITORY"
+          docker build -t "$image_uri:$IMAGE_TAG" -t "$image_uri:latest" model-service
+          docker push "$image_uri:$IMAGE_TAG"
+          docker push "$image_uri:latest"
+
+      - name: Roll out on App Runner
+        run: |
+          aws apprunner start-deployment --service-arn "${{ vars.APP_RUNNER_SERVICE_ARN }}"
+
+      - name: Wait for healthy service
+        run: |
+          service_url="https://${{ vars.APP_RUNNER_SERVICE_URL }}"
+          for attempt in $(seq 1 30); do
+            status=$(aws apprunner describe-service --service-arn "${{ vars.APP_RUNNER_SERVICE_ARN }}" \
+              --query 'Service.Status' --output text)
+            echo "attempt $attempt: $status"
+            if [ "$status" = "RUNNING" ] && curl -fsS "$service_url/health"; then
+              exit 0
+            fi
+            sleep 20
+          done
+          echo "service did not become healthy in time" >&2
+          exit 1
