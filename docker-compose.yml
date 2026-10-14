@@ -1,0 +1,30 @@
+# Full stack locally:   cp .env.example .env   (fill it in)   then   docker compose up --build
+# Web app on http://localhost:3000, model service on http://localhost:8080/health
+services:
+  model-service:
+    build: ./model-service
+    environment:
+      MODEL_SERVICE_SECRET: ${MODEL_SERVICE_SECRET:?set MODEL_SERVICE_SECRET in .env}
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=2)"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+    env_file: .env
+    environment:
+      # inside the compose network the service is reachable by its name
+      MODEL_SERVICE_URL: http://model-service:8080
+    ports:
+      - "3000:3000"
+    depends_on:
+      model-service:
+        condition: service_healthy

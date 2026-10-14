@@ -1,0 +1,2 @@
+budget_alert_email = "you@example.com"
+# create_service   = true   # flip after the first image is in ECR (see README)
