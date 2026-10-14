@@ -16,6 +16,7 @@ import { getSubmissions } from "@/services/problem.service"
 import checkSolvedStatus from "@/utils/checkSolvedStatus"
 import { getWeakTags, WeakTag } from "@/services/statistics.service"
 import { addBookmark, removeBookmark } from "@/services/bookmark.service"
+import { fetchAdaptiveModel, AdaptiveModel } from "@/services/adaptiveDifficulty.service"
 
 const ALL_PROBLEMS_KEY = "cpdojo-all-problems"
 const SOLVED_PROBLEMS_KEY = (handle: string) => `cpdojo-solved-${handle}`
@@ -34,6 +35,8 @@ const useTraining = () => {
   const [selectedTags, setSelectedTags] = useState<ProblemTag[]>([])
   const [problemCount, setProblemCount] = useState(4)
   const [weakTags, setWeakTags] = useState<WeakTag[]>([])
+  const [adaptiveModel, setAdaptiveModel] = useState<AdaptiveModel | null>(null)
+  const [isBuildingModel, setIsBuildingModel] = useState(false)
 
   // fetch all CF problems, cached for 1 hour
   const { data: allProblems } = useSWR<CodeforcesProblem[]>(
@@ -84,6 +87,29 @@ const useTraining = () => {
     fetchWeakTags()
   }, [user])
 
+
+
+// fetch the adaptive difficulty model (trained server-side by the model service
+// from the user's CF history). null means cold start or service unavailable —
+// getRandomProblems falls back to uniform random either way.
+useEffect(() => {
+  if (!user) return
+  const buildModel = async () => {
+    setIsBuildingModel(true)
+    try {
+      const model = await fetchAdaptiveModel()
+      setAdaptiveModel(model)
+    } catch {
+      setAdaptiveModel(null)
+    } finally {
+      setIsBuildingModel(false)
+    }
+  }
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  buildModel()
+}, [user])
+
+
   // generate a new problem set
   const generate = async () => {
     if (!user || !allProblems) return
@@ -92,13 +118,15 @@ const useTraining = () => {
       // delete old incomplete session if exists
       // pick random problems
       const picked = getRandomProblems(
-        allProblems,
-        solvedProblems ?? [],
-        ratingMin,
-        ratingMax,
-        selectedTags,
-        problemCount // default 4 problems for training
-      )
+      allProblems,
+      solvedProblems ?? [],
+      ratingMin,
+      ratingMax,
+      selectedTags,
+      problemCount,
+      adaptiveModel ?? undefined,
+      user.platform_rating
+    )
 
       // create session in Supabase
       const sessionRes = await createSession(
@@ -199,6 +227,7 @@ const useTraining = () => {
     problems,
     isGenerating,
     isChecking,
+    isBuildingModel,
     lastChecked,
     ratingMin,
     ratingMax,
